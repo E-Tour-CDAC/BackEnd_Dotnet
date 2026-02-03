@@ -2,6 +2,7 @@
 using Backend_dotnet.Repositories.Implementations;
 using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Services;
+using Backend_dotnet.Services.Implementations;
 using Backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Xml.Linq;
@@ -38,12 +39,18 @@ namespace Backend_dotnet
             );
 
             // 🔹 Register services
+
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+            // 🔹 Register Search Services
+            builder.Services.AddScoped<ISearchService, SearchService>();
+            builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(Program));
 
             var app = builder.Build();
 
