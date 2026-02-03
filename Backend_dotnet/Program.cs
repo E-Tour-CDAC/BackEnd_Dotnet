@@ -1,4 +1,6 @@
 
+using Backend_dotnet.Services.Implementations;
+
 namespace Backend_dotnet
 {
     public class Program
@@ -7,7 +9,18 @@ namespace Backend_dotnet
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddHttpClient();
             // Add services to the container.
+            builder.Services.AddHttpClient("AuthService", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:8080/");
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
+            builder.Services.AddScoped<Backend_dotnet.Services.Implementations.AuthService>();
+
+
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -31,6 +44,8 @@ namespace Backend_dotnet
             app.MapControllers();
 
             app.Run();
+
+
         }
     }
 }
