@@ -1,3 +1,10 @@
+﻿using Backend_dotnet.Data;
+using Backend_dotnet.Repositories.Implementations;
+using Backend_dotnet.Repositories.Interfaces;
+using Backend_dotnet.Services;
+using Backend_dotnet.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
 
 using Backend_dotnet.Services.Implementations;
 
@@ -9,8 +16,58 @@ namespace Backend_dotnet
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddHttpClient();
-            // Add services to the container.
+            DotNetEnv.Env.Load();
+
+
+            var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASS");
+
+            if (string.IsNullOrWhiteSpace(dbUser))
+            {
+                throw new Exception("Database environment variables are missing");
+            }
+
+            // 🔹 Read normal connection string
+            var connectionString =
+    $"server=localhost;database=e_tour;user={dbUser};password={dbPassword}";
+
+            // 🔹 Register DbContext
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseMySql(
+                    connectionString,
+                    ServerVersion.Parse("8.0.43-mysql")
+                )
+            );
+
+            // 🔹 Register services
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+
+
+            // =========================
+            // 🔹 CONTROLLERS + JSON (IMPORTANT)
+            // =========================
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // 🔥 REQUIRED for Java DTO mapping
+                    options.JsonSerializerOptions.PropertyNamingPolicy =
+                        System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+
+
+            // =========================
+            // 🔹 HTTP CLIENT (JAVA BACKEND)
+            // =========================
             builder.Services.AddHttpClient("AuthService", client =>
             {
                 client.BaseAddress = new Uri("http://localhost:8080/");
@@ -18,18 +75,13 @@ namespace Backend_dotnet
                     new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             });
 
-            builder.Services.AddScoped<Backend_dotnet.Services.Implementations.AuthService>();
-
-
-
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            // =========================
+            // 🔹 SERVICES
+            // =========================
+            builder.Services.AddScoped<AuthService>(); // 🔥 CALLS JAVA AUTH
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -37,14 +89,9 @@ namespace Backend_dotnet
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.Run();
-
 
         }
     }
