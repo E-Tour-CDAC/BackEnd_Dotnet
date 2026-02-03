@@ -11,6 +11,8 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Xml.Linq;
 
+using Backend_dotnet.Services.Implementations;
+
 namespace Backend_dotnet
 {
     public class Program
@@ -90,6 +92,39 @@ namespace Backend_dotnet
                     }
                 });
             });
+
+
+
+            // =========================
+            // 🔹 CONTROLLERS + JSON (IMPORTANT)
+            // =========================
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // 🔥 REQUIRED for Java DTO mapping
+                    options.JsonSerializerOptions.PropertyNamingPolicy =
+                        System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+
+
+            // =========================
+            // 🔹 HTTP CLIENT (JAVA BACKEND)
+            // =========================
+            builder.Services.AddHttpClient("AuthService", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:8080/");
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
+            // =========================
+            // 🔹 SERVICES
+            // =========================
+            builder.Services.AddScoped<AuthService>(); // 🔥 CALLS JAVA AUTH
 
             var app = builder.Build();
 
