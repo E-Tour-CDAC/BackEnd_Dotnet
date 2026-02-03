@@ -1,15 +1,16 @@
-﻿using Backend_dotnet.Data;
+﻿using Backend_dotnet.Configuration;
+using Backend_dotnet.Data;
 using Backend_dotnet.Middleware;
 using Backend_dotnet.Repositories.Implementations;
 using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Services;
+using Backend_dotnet.Services.Implementations;
 using Backend_dotnet.Services.Interfaces;
 using Backend_dotnet.Utilities.Helpers;
 using Backend_dotnet.Utilities.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Xml.Linq;
 
 namespace Backend_dotnet
 {
@@ -19,7 +20,7 @@ namespace Backend_dotnet
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ===== SERILOG LOGGING CONFIGURATION =====
+            // ================= LOGGING =================
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Configuration)
                 .WriteTo.Console()
@@ -28,15 +29,15 @@ namespace Backend_dotnet
 
             builder.Host.UseSerilog();
 
-
-            // ===== DATABASE CONFIGURATION =====
+            // ================= DATABASE =================
             DotNetEnv.Env.Load();
+
             var dbUser = Environment.GetEnvironmentVariable("DB_USER");
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASS");
 
-            if (string.IsNullOrWhiteSpace(dbUser))
+            if (string.IsNullOrWhiteSpace(dbUser) || string.IsNullOrWhiteSpace(dbPassword))
             {
-                throw new Exception("Database environment variables are missing");
+                throw new Exception("Database environment variables missing");
             }
 
             var connectionString =
@@ -49,21 +50,29 @@ namespace Backend_dotnet
                 )
             );
 
-            // ===== AUTOMAPPER =====
+            // ================= AUTOMAPPER =================
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-            // ===== REPOSITORIES (GENERIC FIRST, THEN SPECIFIC) =====
+            // ================= REPOSITORIES =================
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-            // 🔹 Register services
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-            // ===== HELPERS =====
+            // ================= SERVICES =================
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
+
+            // ================= RAZORPAY CONFIG =================
+            builder.Services.Configure<RazorpayOptions>(
+                builder.Configuration.GetSection("Razorpay")
+            );
+
+            // ================= HELPERS =================
             builder.Services.AddScoped<EmailHelper>();
             builder.Services.AddScoped<ImageHelper>();
 
-            // ===== CORS =====
+            // ================= CORS =================
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -74,6 +83,7 @@ namespace Backend_dotnet
                 });
             });
 
+            // ================= MVC & SWAGGER =================
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -81,46 +91,30 @@ namespace Backend_dotnet
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "E-Tour API",
-                    Version = "v1",
-                    Description = "E-Tour Booking System API",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "E-Tour Team",
-                        Email = "etourvirtugo@gmail.com"
-                    }
+                    Version = "v1"
                 });
             });
 
             var app = builder.Build();
 
-                // 1. Exception Handling (FIRST!)
-                app.UseMiddleware<ExceptionHandlingMiddleware>();
+            // ================= MIDDLEWARE =================
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseMiddleware<LoggingMiddleware>();
 
-                // 2. Logging
-                app.UseMiddleware<LoggingMiddleware>();
-
-                // 3. Request/Response Logging (Development only)
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseMiddleware<RequestResponseLoggingMiddleware>();
-                }
-
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
-
-                app.UseHttpsRedirection();
-                // 6. Static Files
-                app.UseStaticFiles();
-
-                // 7. CORS
-                app.UseCors("AllowAll");
-                app.UseAuthorization();
-                app.MapControllers();
-                app.Run();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
-            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseCors("AllowAll");
+
+            app.UseAuthorization();
+            app.MapControllers();
+
+            app.Run();
+        }
     }
-
+}
