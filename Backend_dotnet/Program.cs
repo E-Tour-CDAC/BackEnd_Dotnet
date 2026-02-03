@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
+using Backend_dotnet.Services.Implementations;
+
 namespace Backend_dotnet
 {
     public class Program
@@ -62,6 +64,16 @@ namespace Backend_dotnet
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
+            // 🔹 Register services
+
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+
+            // Tour Module
+            builder.Services.AddScoped<ITourRepository, TourRepository>();
+            builder.Services.AddScoped<ITourService, TourService>();
 
             // ================= RAZORPAY CONFIG =================
             builder.Services.Configure<RazorpayOptions>(
@@ -84,6 +96,10 @@ namespace Backend_dotnet
             });
 
             // ================= MVC & SWAGGER =================
+            // 🔹 Register Search Services
+            builder.Services.AddScoped<ISearchService, SearchService>();
+            builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -95,26 +111,64 @@ namespace Backend_dotnet
                 });
             });
 
+
+
+            // =========================
+            // 🔹 CONTROLLERS + JSON (IMPORTANT)
+            // =========================
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // 🔥 REQUIRED for Java DTO mapping
+                    options.JsonSerializerOptions.PropertyNamingPolicy =
+                        System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(Program));
+
+
+
+            // =========================
+            // 🔹 HTTP CLIENT (JAVA BACKEND)
+            // =========================
+            builder.Services.AddHttpClient("AuthService", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:8080/");
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
+            // =========================
+            // 🔹 SERVICES
+            // =========================
+            builder.Services.AddScoped<AuthService>(); // 🔥 CALLS JAVA AUTH
+
             var app = builder.Build();
 
             // ================= MIDDLEWARE =================
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseMiddleware<LoggingMiddleware>();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+            
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
+
+                app.UseHttpsRedirection();
+                // 6. Static Files
+                app.UseStaticFiles();
+
+                // 7. CORS
+                app.UseCors("AllowAll");
+            //app.UseAuthentication();
+            //app.UseAuthorization();
+                app.MapControllers();
+                app.Run();
             }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseCors("AllowAll");
-
-            app.UseAuthorization();
-            app.MapControllers();
-
-            app.Run();
-        }
+            }
     }
 }
