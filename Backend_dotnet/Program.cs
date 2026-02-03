@@ -1,3 +1,7 @@
+﻿using Backend_dotnet.Data;
+using Backend_dotnet.Services;
+using Backend_dotnet.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend_dotnet
 {
@@ -7,16 +11,33 @@ namespace Backend_dotnet
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // 🔹 Read normal connection string
+            var connectionString =
+                builder.Configuration.GetConnectionString("DefaultConnection");
+
+            
+
+            Console.WriteLine("==== DB CONNECTION STRING CHECK ====");
+            Console.WriteLine(connectionString);
+            Console.WriteLine("===================================");
+
+            // 🔹 Register DbContext
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseMySql(
+                    connectionString,
+                    ServerVersion.Parse("8.0.43-mysql")
+                )
+            );
+
+            // 🔹 Register services
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -24,12 +45,8 @@ namespace Backend_dotnet
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.Run();
         }
     }
