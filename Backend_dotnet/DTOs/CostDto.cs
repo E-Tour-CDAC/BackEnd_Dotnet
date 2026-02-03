@@ -1,6 +1,6 @@
 using System;
 
-namespace Backend_dotnet.DTOs.Tour
+namespace Backend_dotnet.DTOs
 {
     public class CostDto
     {

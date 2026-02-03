@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Backend_dotnet.DTOs.Tour
+namespace Backend_dotnet.DTOs
 {
     public class ScheduledTourDto
     {

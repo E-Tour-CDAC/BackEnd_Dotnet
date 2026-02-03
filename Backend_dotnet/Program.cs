@@ -58,12 +58,12 @@ namespace Backend_dotnet
             // ================= REPOSITORIES =================
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            //builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
             // ================= SERVICES =================
             builder.Services.AddScoped<ICategoryService, CategoryService>();
-            builder.Services.AddScoped<IPaymentService, PaymentService>();
-            builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
+            //builder.Services.AddScoped<IPaymentService, PaymentService>();
+            //builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
             // 🔹 Register services
 
             builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -74,6 +74,14 @@ namespace Backend_dotnet
             // Tour Module
             builder.Services.AddScoped<ITourRepository, TourRepository>();
             builder.Services.AddScoped<ITourService, TourService>();
+
+            // Extra Modules
+            builder.Services.AddScoped<ICostRepository, CostRepository>();
+            builder.Services.AddScoped<IItineraryRepository, ItineraryRepository>();
+            builder.Services.AddScoped<IDepartureRepository, DepartureRepository>();
+            builder.Services.AddScoped<ICostService, CostService>();
+            builder.Services.AddScoped<IItineraryService, ItineraryService>();
+            builder.Services.AddScoped<IDepartureService, DepartureService>();
 
             // ================= RAZORPAY CONFIG =================
             builder.Services.Configure<RazorpayOptions>(

@@ -1,4 +1,4 @@
-namespace Backend_dotnet.DTOs.Tour
+namespace Backend_dotnet.DTOs
 {
     public class ItineraryDto
     {
