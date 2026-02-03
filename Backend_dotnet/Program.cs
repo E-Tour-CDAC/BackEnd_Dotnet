@@ -59,6 +59,7 @@ namespace Backend_dotnet
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             // 🔹 Register services
+
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
@@ -82,6 +83,10 @@ namespace Backend_dotnet
                           .AllowAnyHeader();
                 });
             });
+
+            // 🔹 Register Search Services
+            builder.Services.AddScoped<ISearchService, SearchService>();
+            builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -115,6 +120,7 @@ namespace Backend_dotnet
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(Program));
 
 
 
