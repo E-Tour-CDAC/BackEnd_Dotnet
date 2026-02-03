@@ -2,6 +2,7 @@
 using Backend_dotnet.Services;
 using Backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
 
 namespace Backend_dotnet
 {
@@ -11,15 +12,20 @@ namespace Backend_dotnet
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            DotNetEnv.Env.Load();
+
+
+            var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASS");
+
+            if (string.IsNullOrWhiteSpace(dbUser))
+            {
+                throw new Exception("Database environment variables are missing");
+            }
+
             // 🔹 Read normal connection string
             var connectionString =
-                builder.Configuration.GetConnectionString("DefaultConnection");
-
-            
-
-            Console.WriteLine("==== DB CONNECTION STRING CHECK ====");
-            Console.WriteLine(connectionString);
-            Console.WriteLine("===================================");
+    $"server=localhost;database=e_tour;user={dbUser};password={dbPassword}";
 
             // 🔹 Register DbContext
             builder.Services.AddDbContext<AppDbContext>(options =>
