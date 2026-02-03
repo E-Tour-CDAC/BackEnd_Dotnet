@@ -3,6 +3,7 @@ using Backend_dotnet.Middleware;
 using Backend_dotnet.Repositories.Implementations;
 using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Services;
+using Backend_dotnet.Services.Implementations;
 using Backend_dotnet.Services.Interfaces;
 using Backend_dotnet.Utilities.Helpers;
 using Backend_dotnet.Utilities.Mappers;
@@ -58,6 +59,10 @@ namespace Backend_dotnet
             // 🔹 Register services
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+            // Tour Module
+            builder.Services.AddScoped<ITourRepository, TourRepository>();
+            builder.Services.AddScoped<ITourService, TourService>();
 
             // ===== HELPERS =====
             builder.Services.AddScoped<EmailHelper>();
