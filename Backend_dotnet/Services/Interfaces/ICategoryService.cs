@@ -6,7 +6,7 @@ namespace Backend_dotnet.Services.Interfaces
 {
     public interface ICategoryService
     {
-        Task<List<int>> GetCategoryIdsBySubCatAsync(string subcatCode);
+        Task<IEnumerable<int>> GetCategoryIdsBySubCatAsync(string subcatCode);
     }
 }
 
