@@ -60,6 +60,8 @@ namespace Backend_dotnet
             // 🔹 Register services
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             // ===== HELPERS =====
             builder.Services.AddScoped<EmailHelper>();
@@ -152,7 +154,8 @@ namespace Backend_dotnet
 
                 // 7. CORS
                 app.UseCors("AllowAll");
-                app.UseAuthorization();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
                 app.MapControllers();
                 app.Run();
             }
