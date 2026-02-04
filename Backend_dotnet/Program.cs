@@ -89,6 +89,7 @@ namespace Backend_dotnet
 
             // Invoice & Email Module
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+            builder.Services.AddScoped<IInvoicePdfService, InvoicePdfService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
 
             // ================= RAZORPAY CONFIG =================

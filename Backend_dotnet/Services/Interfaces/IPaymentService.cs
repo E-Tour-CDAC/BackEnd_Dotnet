@@ -7,5 +7,6 @@ namespace Backend_dotnet.Services.Interfaces
         Task<PaymentDto> MakePayment(int bookingId, string paymentMode, string transactionRef, string paymentStatus, decimal amount);
         PaymentDto GetPaymentById(int paymentId);
         PaymentDto GetSuccessfulPayment(int bookingId);
+        Task<int> GetPaymentIdByBookingAsync(int bookingId);
     }
 }

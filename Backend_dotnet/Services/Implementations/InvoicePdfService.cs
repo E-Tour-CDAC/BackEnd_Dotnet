@@ -19,15 +19,24 @@ namespace Backend_dotnet.Services.Implementations
     {
         private readonly AppDbContext _context;
 
-        private static readonly PdfFont BoldFont =
-            PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-
-        private static readonly PdfFont NormalFont =
-            PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+        private PdfFont _boldFont;
+        private PdfFont _normalFont;
 
         public InvoicePdfService(AppDbContext context)
         {
             _context = context;
+            try 
+            {
+                _boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                _normalFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+            }
+            catch
+            {
+                // Fallback or rethrow with clear message
+                // In some environments, StandardFonts might fail if dependencies are missing
+                _boldFont = PdfFontFactory.CreateFont(StandardFonts.COURIER_BOLD);
+                _normalFont = PdfFontFactory.CreateFont(StandardFonts.COURIER);
+            }
         }
 
         public async Task<byte[]> GenerateInvoiceAsync(int paymentId)
@@ -91,7 +100,7 @@ namespace Backend_dotnet.Services.Implementations
 
             doc.Add(
                 new Paragraph("VirtuGo Invoice")
-                    .SetFont(BoldFont)
+                    .SetFont(_boldFont)
                     .SetFontSize(24)
                     .SetFontColor(ColorConstants.BLUE)
                     .SetTextAlignment(TextAlignment.CENTER)
@@ -140,7 +149,7 @@ namespace Backend_dotnet.Services.Implementations
             // =====================
 
             doc.Add(new Paragraph("Passenger Details")
-                .SetFont(BoldFont)
+                .SetFont(_boldFont)
                 .SetMarginTop(10)
                 .SetMarginBottom(10));
 
@@ -200,37 +209,37 @@ namespace Backend_dotnet.Services.Implementations
         // 🔧 HELPERS (WITH PADDING)
         // =====================
 
-        private static Cell Header(Table t, string text)
+        private Cell Header(Table t, string text)
             => new Cell()
-                .Add(new Paragraph(text).SetFont(BoldFont))
+                .Add(new Paragraph(text).SetFont(_boldFont))
                 .SetPadding(6)
                 .SetBackgroundColor(ColorConstants.LIGHT_GRAY)
                 .SetTextAlignment(TextAlignment.CENTER);
 
-        private static Cell DataCell(string text)
+        private Cell DataCell(string text)
             => new Cell()
-                .Add(new Paragraph(text).SetFont(NormalFont))
+                .Add(new Paragraph(text).SetFont(_normalFont))
                 .SetPadding(6);
 
-        private static Cell Center(string text)
+        private Cell Center(string text)
             => new Cell()
-                .Add(new Paragraph(text).SetFont(NormalFont))
+                .Add(new Paragraph(text).SetFont(_normalFont))
                 .SetPadding(6)
                 .SetTextAlignment(TextAlignment.CENTER);
 
-        private static Cell Right(string text)
+        private Cell Right(string text)
             => new Cell()
-                .Add(new Paragraph(text).SetFont(NormalFont))
+                .Add(new Paragraph(text).SetFont(_normalFont))
                 .SetPadding(6)
                 .SetTextAlignment(TextAlignment.RIGHT);
 
-        private static Cell NoBorder(string text)
+        private Cell NoBorder(string text)
             => new Cell()
-                .Add(new Paragraph(text).SetFont(NormalFont))
+                .Add(new Paragraph(text).SetFont(_normalFont))
                 .SetPadding(5)
                 .SetBorder(Border.NO_BORDER);
 
-        private static void NoBorderRow(
+        private void NoBorderRow(
             Table t,
             string label,
             decimal value,
@@ -238,13 +247,13 @@ namespace Backend_dotnet.Services.Implementations
         {
             t.AddCell(
                 new Cell()
-                    .Add(new Paragraph(label).SetFont(NormalFont))
+                    .Add(new Paragraph(label).SetFont(_normalFont))
                     .SetPadding(4)
                     .SetBorder(Border.NO_BORDER));
 
             var p = new Paragraph(value.ToString());
 
-            p.SetFont(bold ? BoldFont : NormalFont);
+            p.SetFont(bold ? _boldFont : _normalFont);
 
             t.AddCell(
                 new Cell()

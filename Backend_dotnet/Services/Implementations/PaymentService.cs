@@ -71,6 +71,23 @@ namespace Backend_dotnet.Services.Implementations
             return MapToDto(payment);
         }
 
+        public async Task<int> GetPaymentIdByBookingAsync(int bookingId)
+        {
+            var payment = await Task.Run(() => _paymentRepository
+                .FindByBookingIdAndStatus(bookingId, "SUCCESS"));
+
+            if (payment == null)
+            {
+                // Fallback: Try to find ANY payment to generate invoice (or throw)
+                var anyPayment = _paymentRepository.FindAllByBookingId(bookingId).FirstOrDefault();
+                if (anyPayment != null) return anyPayment.payment_id;
+
+                throw new Exception("No payment record found for this booking.");
+            }
+
+            return payment.payment_id;
+        }
+
         private PaymentDto MapToDto(payment_master p)
         {
             return new PaymentDto
@@ -80,7 +97,7 @@ namespace Backend_dotnet.Services.Implementations
                 PaymentAmount = p.payment_amount,
                 PaymentStatus = p.payment_status,
                 PaymentMode = p.payment_mode,
-                TransactionRef = p.transaction_ref,
+                TransactionRef = p.transaction_ref ?? string.Empty,
                 PaymentDate = p.payment_date
             };
         }
