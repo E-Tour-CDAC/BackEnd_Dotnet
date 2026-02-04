@@ -11,7 +11,6 @@ using Backend_dotnet.Utilities.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
-
 using Backend_dotnet.Services.Implementations;
 
 namespace Backend_dotnet
@@ -166,7 +165,7 @@ namespace Backend_dotnet
                     app.UseSwaggerUI();
                 }
 
-                app.UseHttpsRedirection();
+                // app.UseHttpsRedirection();
                 // 6. Static Files
                 app.UseStaticFiles();
 
@@ -179,4 +178,3 @@ namespace Backend_dotnet
             }
             }
     }
-
