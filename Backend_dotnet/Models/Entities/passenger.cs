@@ -17,7 +17,9 @@ public partial class passenger
     [StringLength(255)]
     public string pax_name { get; set; } = null!;
 
-    public DateOnly pax_birthdate { get; set; }
+   [Column(TypeName = "date")]
+public DateTime pax_birthdate { get; set; }
+
 
     [Column(TypeName = "tinytext")]
     public string pax_type { get; set; } = null!;

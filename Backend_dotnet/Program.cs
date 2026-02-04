@@ -88,6 +88,14 @@ namespace Backend_dotnet
             );
 
             // ================= HELPERS =================
+            // builder.Services.AddScoped<IBookingService, BookingService>();
+            // builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+
+            builder.Services.AddScoped<IPassengerService, PassengerService>();
+            builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
+
+
+            // ===== HELPERS ====
             builder.Services.AddScoped<EmailHelper>();
             builder.Services.AddScoped<ImageHelper>();
 
@@ -155,6 +163,9 @@ namespace Backend_dotnet
             var app = builder.Build();
 
             // ================= MIDDLEWARE =================
+            // 7. CORS (MUST BE FIRST for error responses to work in browser/swagger)
+            app.UseCors("AllowAll");
+            
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseMiddleware<LoggingMiddleware>();
 
@@ -169,8 +180,7 @@ namespace Backend_dotnet
                 // 6. Static Files
                 app.UseStaticFiles();
 
-                // 7. CORS
-                app.UseCors("AllowAll");
+                // 7. CORS - Moved to top
             //app.UseAuthentication();
             //app.UseAuthorization();
                 app.MapControllers();
