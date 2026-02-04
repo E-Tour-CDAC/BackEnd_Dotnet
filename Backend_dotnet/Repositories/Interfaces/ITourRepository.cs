@@ -4,28 +4,17 @@ using Backend_dotnet.Models.Entities;
 
 namespace Backend_dotnet.Repositories.Interfaces
 {
-    public interface ITourRepository
+    public interface ITourRepository:IGenericRepository<tour_master>
     {
-        // Category Level Data
-        Task<category_master?> GetCategoryWithDetailsAsync(int categoryId);
-        Task<IEnumerable<category_master>> GetCategoriesWithDetailsAsync(IEnumerable<int> categoryIds);
 
+        // Custom methods (MATCHING Java exactly)
+        Task<IEnumerable<tour_master>> GetByCategoryIdAsync(int categoryId);
 
-        // Tour (Scheduled) Operations
-        Task<IEnumerable<tour_master>> GetAllToursAsync();
-        Task<tour_master?> GetTourByIdAsync(int id);
-        Task<tour_master> AddTourAsync(tour_master tour);
-        Task<tour_master> UpdateTourAsync(tour_master tour);
-        Task<bool> DeleteTourAsync(int id);
-        Task<IEnumerable<tour_master>> SearchToursAsync(string query);
-        Task<IEnumerable<tour_master>> GetToursByCategoryAsync(int categoryId);
+        Task<IEnumerable<tour_master>> GetByCategoryIdsAsync(IEnumerable<int> categoryIds);
 
-
-        // Tour Guide Operations
-        Task<IEnumerable<tour_guide>> GetGuidesByTourIdAsync(int tourId);
-        Task<tour_guide?> GetTourGuideByIdAsync(int guideId);
-        Task<tour_guide> AddTourGuideAsync(tour_guide guide);
-        Task<tour_guide> UpdateTourGuideAsync(tour_guide guide);
-        Task<bool> DeleteTourGuideAsync(int guideId);
+        Task<tour_master?> GetByCategoryIdAndDepartureIdAsync(
+            int categoryId,
+            int departureId
+        );
     }
 }
