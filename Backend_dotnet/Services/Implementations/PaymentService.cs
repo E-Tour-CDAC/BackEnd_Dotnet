@@ -9,22 +9,38 @@ namespace Backend_dotnet.Services.Implementations
     {
         private readonly IPaymentRepository _paymentRepository;
 
-        public PaymentService(IPaymentRepository paymentRepository)
+        private readonly IBookingRepository _bookingRepository;
+
+        public PaymentService(IPaymentRepository paymentRepository, IBookingRepository bookingRepository)
         {
             _paymentRepository = paymentRepository;
+            _bookingRepository = bookingRepository;
         }
 
-        public PaymentDto MakePayment(int bookingId, decimal amount)
+        public async Task<PaymentDto> MakePayment(int bookingId, string paymentMode, string transactionRef, string paymentStatus, decimal amount)
         {
+            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            if (booking == null)
+                throw new Exception("Booking not found");
+
             if (_paymentRepository.ExistsByBookingIdAndStatus(bookingId, "SUCCESS"))
-                throw new Exception("Payment already completed");
+                throw new Exception("Payment already completed for this booking");
+
+            var existingPayment = _paymentRepository.FindByTransactionRef(transactionRef);
+            if (existingPayment != null)
+                throw new Exception("Duplicate transaction reference");
+
+            // Assuming total_amount is nullable decimal? based on booking_header.cs
+            if (booking.total_amount != amount) 
+                throw new Exception("Payment amount mismatch");
 
             var payment = new payment_master
             {
                 booking_id = bookingId,
                 payment_amount = amount,
-                payment_status = "INITIATED",
-                payment_mode = "RAZORPAY",
+                payment_status = paymentStatus,
+                transaction_ref = transactionRef,
+                payment_mode = paymentMode,
                 payment_date = DateTime.Now
             };
 
