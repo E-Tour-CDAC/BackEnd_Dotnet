@@ -160,5 +160,13 @@ namespace Backend_dotnet.Services.Implementations
             };
         }
 
+        public async Task<List<TourDto>> GetToursByCategoryIdsAsync(List<int> categoryIds)
+        {
+            if (categoryIds == null || !categoryIds.Any())
+                return new List<TourDto>();
+
+            return await FetchToursAsync(categoryIds);
+        }
+
     }
 }

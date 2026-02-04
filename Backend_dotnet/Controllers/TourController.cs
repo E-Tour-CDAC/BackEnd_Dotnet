@@ -61,5 +61,17 @@ namespace Backend_dotnet.Controllers
             var tours = await _tourService.GetToursByCategoryIdAsync(catId);
             return Ok(tours);
         }
+        //  GET TOURS BY CATEGORY IDs
+        // POST: /api/tours/by-category-ids
+        [HttpPost("by-category-ids")]
+        public async Task<ActionResult<List<TourDto>>> GetToursByCategoryIds(
+            [FromBody] List<int> categoryIds)
+        {
+            if (categoryIds == null || !categoryIds.Any())
+                return BadRequest("Category IDs cannot be empty.");
+
+            var tours = await _tourService.GetToursByCategoryIdsAsync(categoryIds);
+            return Ok(tours);
+        }
     }
 }
