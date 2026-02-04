@@ -52,8 +52,8 @@ namespace Backend_dotnet.Services.Implementations
 
             return tours
                 .Select(ConvertToDto)
-                //.GroupBy(t => t.CategoryId)      // deduplicate by CategoryId  <-- REMOVED THIS
-                //.Select(g => g.First())
+                .GroupBy(t => t.CategoryId)      // deduplicate by CategoryId
+                .Select(g => g.First())
                 .ToList();
         }
 
