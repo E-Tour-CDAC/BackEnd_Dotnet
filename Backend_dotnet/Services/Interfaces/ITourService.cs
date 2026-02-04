@@ -12,6 +12,7 @@ namespace Backend_dotnet.Services.Interfaces
         Task<List<TourDto>> GetToursByIdsAsync(List<int> tourIds);
         Task<List<TourDto>> GetToursByCategoryIdAsync(int categoryId);
         Task<TourDto> GetTourByIdAsync(int id);
+        Task<List<TourDto>> GetToursByCategoryIdsAsync(List<int> categoryIds);
         Task<int> GetTourIdByCategoryAndDepartureAsync(int categoryId, int departureId);
     }
 }

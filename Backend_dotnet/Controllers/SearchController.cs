@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Backend_dotnet.Controllers
-{
+{ 
     [ApiController]
     [Route("api/[controller]")]
     public class SearchController : ControllerBase
