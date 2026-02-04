@@ -1,9 +1,11 @@
-using Backend_dotnet.Data;
+﻿using Backend_dotnet.Data;
 using Backend_dotnet.DTOs;
+using Backend_dotnet.DTOs.Common;
 using Backend_dotnet.Models.Entities;
 using Backend_dotnet.Services.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+
 
 namespace Backend_dotnet.Services.Implementations
 {
@@ -16,8 +18,19 @@ namespace Backend_dotnet.Services.Implementations
             _context = context;
         }
 
-        public PassengerDto AddPassenger(PassengerDto passengerDto)
+        public ServiceResult<PassengerDto> AddPassenger(PassengerDto passengerDto)
         {
+            // 1️⃣ Validate booking exists
+            bool bookingExists = _context.booking_header
+                .Any(b => b.booking_id == passengerDto.BookingId);
+
+            if (!bookingExists)
+            {
+               return ServiceResult<PassengerDto>
+                    .Fail($"Invalid BookingId {passengerDto.BookingId}. Booking does not exist.");
+            }
+
+            // 2️⃣ Create passenger entity
             var passenger = new passenger
             {
                 booking_id = passengerDto.BookingId,
@@ -27,12 +40,17 @@ namespace Backend_dotnet.Services.Implementations
                 pax_amount = passengerDto.PaxAmount
             };
 
+            // 3️⃣ Save to DB
             _context.passenger.Add(passenger);
             _context.SaveChanges();
 
+            // 4️⃣ Return DTO
             passengerDto.Id = passenger.pax_id;
-            return passengerDto;
+            return ServiceResult<PassengerDto>.Ok(passengerDto);
         }
+
+
+
 
         public PassengerDto GetPassengerById(int id)
         {

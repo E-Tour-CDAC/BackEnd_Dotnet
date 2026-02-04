@@ -6,7 +6,7 @@ using Backend_dotnet.Services.Interfaces;
 namespace Backend_dotnet.Controllers
 {
     [ApiController]
-    [Route("api/passengers")]
+    [Route("api/passenger")]
     public class PassengerController : ControllerBase
     {
         private readonly IPassengerService _passengerService;
@@ -19,10 +19,19 @@ namespace Backend_dotnet.Controllers
 
         // POST: api/passengers/add
         [HttpPost("add")]
-        public ActionResult<PassengerDto> AddPassenger([FromBody] PassengerDto passengerDto)
+        public IActionResult AddPassenger([FromBody] PassengerDto passengerDto)
         {
             var result = _passengerService.AddPassenger(passengerDto);
-            return Ok(result);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(result.Data);
         }
 
         // GET: api/passengers/booking/{bookingId}

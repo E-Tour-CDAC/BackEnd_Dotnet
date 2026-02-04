@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text.Json;
 
+
 namespace Backend_dotnet.Middleware
 {
     /// <summary>
@@ -43,11 +44,15 @@ namespace Backend_dotnet.Middleware
 
             switch (exception)
             {
+
+
                 case KeyNotFoundException:
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.Message = exception.Message;
                     break;
+
+
 
                 case UnauthorizedAccessException:
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
