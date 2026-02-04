@@ -59,27 +59,43 @@ namespace Backend_dotnet.Services.Implementations
 
         public async Task<BookingResponseDto> CreateAsync(BookingCreateDto dto)
         {
-            _logger.LogInformation("Creating booking for customer {CustomerId}, tour {TourId}",
-                dto.CustomerId, dto.TourId);
-
-            var booking = new booking_header
+            try
             {
-                booking_date = DateOnly.FromDateTime(DateTime.Now),
-                customer_id = dto.CustomerId,
-                tour_id = dto.TourId,
-                no_of_pax = dto.NoOfPax,
-                tour_amount = dto.TourAmount,
-                taxes = dto.Taxes,
-                status_id = dto.StatusId == 0 ? 1 : dto.StatusId,
-                total_amount = dto.TourAmount + dto.Taxes
-            };
+                _logger.LogInformation("Creating booking for customer {CustomerId}, tour {TourId}",
+                    dto.CustomerId, dto.TourId);
 
-            var createdBooking = await _bookingRepository.AddAsync(booking);
+                // VALIDATION
+                if (dto.CustomerId <= 0) throw new ArgumentException($"Invalid Customer ID: {dto.CustomerId}");
+                if (dto.TourId <= 0) throw new ArgumentException($"Invalid Tour ID: {dto.TourId}");
+                if (dto.NoOfPax <= 0) throw new ArgumentException("Number of passengers must be greater than 0");
 
-            _logger.LogInformation("Booking {BookingId} created successfully", createdBooking.booking_id);
+                var booking = new booking_header
+                {
+                    booking_date = DateOnly.FromDateTime(DateTime.Now),
+                    customer_id = dto.CustomerId,
+                    tour_id = dto.TourId,
+                    no_of_pax = dto.NoOfPax,
+                    tour_amount = dto.TourAmount,
+                    taxes = dto.Taxes,
+                    status_id = dto.StatusId == 0 ? 1 : dto.StatusId,
+                    total_amount = dto.TourAmount + dto.Taxes
+                };
 
-            var bookingWithDetails = await _bookingRepository.GetBookingWithDetailsAsync(createdBooking.booking_id);
-            return MapToResponseDto(bookingWithDetails);
+                var createdBooking = await _bookingRepository.AddAsync(booking);
+
+                _logger.LogInformation("Booking {BookingId} created successfully", createdBooking.booking_id);
+
+                var bookingWithDetails = await _bookingRepository.GetBookingWithDetailsAsync(createdBooking.booking_id);
+                
+                if (bookingWithDetails == null) throw new Exception("Failed to retrieve created booking details");
+
+                return MapToResponseDto(bookingWithDetails);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating booking for Customer {CustomerId} Tour {TourId}", dto.CustomerId, dto.TourId);
+                throw; // Re-throw to be caught by middleware
+            }
         }
 
         public async Task<int> GetPaymentStatusAsync(int bookingId)

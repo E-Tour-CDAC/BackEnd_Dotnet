@@ -31,7 +31,7 @@ namespace Backend_dotnet.Services.Implementations
             }
 
             // 2️⃣ Create passenger entity
-            var passenger = new passenger
+            var passenger = new Passenger
             {
                 booking_id = passengerDto.BookingId,
                 pax_name = passengerDto.PaxName,

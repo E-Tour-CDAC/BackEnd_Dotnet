@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Backend_dotnet.Repositories.Implementations
 {
     public class PassengerRepository 
-        : GenericRepository<passenger>, IPassengerRepository
+        : GenericRepository<Passenger>, IPassengerRepository
     {
         public PassengerRepository(AppDbContext context) : base(context)
         {
         }
 
         // Equivalent of Spring JPA method: findByBookingId
-        public async Task<IEnumerable<passenger>> GetByBookingIdAsync(int bookingId)
+        public async Task<IEnumerable<Passenger>> GetByBookingIdAsync(int bookingId)
         {
             return await _dbSet
                 .AsNoTracking()

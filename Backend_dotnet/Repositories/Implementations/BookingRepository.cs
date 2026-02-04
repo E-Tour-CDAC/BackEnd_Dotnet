@@ -14,7 +14,7 @@ namespace Backend_dotnet.Repositories.Implementations
         {
         }
 
-        public async Task<IEnumerable<booking_header>> GetAllAsync()
+        public override async Task<IEnumerable<booking_header>> GetAllAsync()
         {
             return await _context.booking_header
                 .Include(b => b.customer)

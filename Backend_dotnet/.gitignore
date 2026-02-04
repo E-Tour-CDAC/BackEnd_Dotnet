@@ -11,6 +11,7 @@
 bin/
 obj/
 out/
+*.txt
 
 ## .NET Core
 project.lock.json
