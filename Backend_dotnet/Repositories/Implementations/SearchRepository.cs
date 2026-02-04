@@ -1,5 +1,6 @@
 
 using Backend_dotnet.Data;
+using Backend_dotnet.Models.Entities;
 using Backend_dotnet.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
