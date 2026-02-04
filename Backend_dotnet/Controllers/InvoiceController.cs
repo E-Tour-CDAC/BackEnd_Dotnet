@@ -7,42 +7,33 @@ namespace Backend_dotnet.Controllers
     [Route("api/invoices")]
     public class InvoiceController : ControllerBase
     {
-        private readonly IInvoiceService _invoiceService;
-        private readonly ILogger<InvoiceController> _logger;
+        private readonly IInvoicePdfService _invoiceService;
+        private readonly IPaymentService _paymentService;
 
-        public InvoiceController(IInvoiceService invoiceService, ILogger<InvoiceController> logger)
+        public InvoiceController(
+            IInvoicePdfService invoiceService,
+            IPaymentService paymentService)
         {
             _invoiceService = invoiceService;
-            _logger = logger;
+            _paymentService = paymentService;
         }
 
-        /// <summary>
-        /// Download invoice PDF for a booking
-        /// </summary>
         [HttpGet("{bookingId}/download")]
         public async Task<IActionResult> DownloadInvoice(int bookingId)
         {
-            try
-            {
-                _logger.LogInformation("Downloading invoice for booking {BookingId}", bookingId);
+            // 🔵 Payment ID from booking
+            int paymentId =
+                await _paymentService.GetPaymentIdByBookingAsync(bookingId);
 
-                // First get the payment ID for this booking
-                var paymentId = _invoiceService.GetPaymentIdByBookingId(bookingId);
-                
-                if (paymentId == null)
-                {
-                    return NotFound(new { message = "No successful payment found for this booking" });
-                }
+            // 🔵 Generate PDF
+            byte[] pdf =
+                await _invoiceService.GenerateInvoiceAsync(paymentId);
 
-                var pdfBytes = await _invoiceService.GenerateInvoiceAsync(paymentId.Value);
-
-                return File(pdfBytes, "application/pdf", $"Invoice-Booking-{bookingId}.pdf");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to generate invoice for booking {BookingId}", bookingId);
-                return BadRequest(new { message = ex.Message });
-            }
+            return File(
+                pdf,
+                "application/pdf",
+                $"invoice_{paymentId}.pdf");
         }
     }
+
 }
