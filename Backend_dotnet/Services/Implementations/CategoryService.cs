@@ -21,6 +21,11 @@ namespace Backend_dotnet.Services.Implementations
             return await _categoryRepository.GetCategoryIdsBySubCatAsync(subcatCode);
         }
 
-        
+        public async Task<IEnumerable<int>> GetHomeCategoryIdsAsync()
+        {
+            var categories = await _categoryRepository.GetCategoryIdsBySubCatAsync("^");
+
+            return categories;
+        }
     }
 }

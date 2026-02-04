@@ -12,7 +12,6 @@ namespace Backend_dotnet.Repositories.Implementations
         }
 
         // Get categories by subcat_code (e.g., "EUP", "KSH", "SEA")
-        
 
         // Get only category IDs by subcat_code
         public async Task<IEnumerable<int>> GetCategoryIdsBySubCatAsync(string subcatCode)
