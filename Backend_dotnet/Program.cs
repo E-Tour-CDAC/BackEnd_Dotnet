@@ -160,7 +160,14 @@ namespace Backend_dotnet
             }
 
             // 6. Static Files
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    // Cache images for 30 days
+                    ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=2592000";
+                }
+            });
 
             // 7. Map Controllers
             app.MapControllers();
