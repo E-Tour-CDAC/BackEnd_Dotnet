@@ -17,13 +17,16 @@ namespace Backend_dotnet.Services.Implementations
     {
         private readonly RazorpayOptions _options;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IBookingRepository _bookingRepository;
 
         public RazorpayService(
             IOptions<RazorpayOptions> options,
-            IPaymentRepository paymentRepository)
+            IPaymentRepository paymentRepository,
+            IBookingRepository bookingRepository)
         {
             _options = options.Value;
             _paymentRepository = paymentRepository;
+            _bookingRepository = bookingRepository;
         }
 
         // =========================
@@ -43,9 +46,11 @@ namespace Backend_dotnet.Services.Implementations
         // =========================
         public async Task<CreateOrderResponseDto> CreateOrder(CreateOrderRequestDto request)
         {
+            // Already paid check
             if (_paymentRepository.ExistsByBookingIdAndStatus(request.BookingId, "SUCCESS"))
                 throw new Exception("Payment already completed");
 
+            //  Reuse INITIATED payment (retry case)
             var initiated = _paymentRepository
                 .FindByBookingIdAndStatus(request.BookingId, "INITIATED");
 
@@ -59,11 +64,22 @@ namespace Backend_dotnet.Services.Implementations
                 };
             }
 
+            //REAL AMOUNT FROM BOOKING
+            var booking = await _bookingRepository.GetByIdAsync(request.BookingId);
+            if (booking == null)
+                throw new Exception("Booking not found");
+
+            if (booking.total_amount == null)
+                throw new Exception("Booking amount not found");
+
+            var bookingAmount = booking.total_amount.Value; // decimal
+
+            // Razorpay order create
             var client = CreateClient();
 
             var payload = new
             {
-                amount = 50000, // paise
+                amount = (long)(bookingAmount * 100), 
                 currency = "INR",
                 receipt = $"booking_{request.BookingId}"
             };
@@ -80,14 +96,18 @@ namespace Backend_dotnet.Services.Implementations
             );
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception("Failed to create Razorpay order");
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to create Razorpay order. Status: {response.StatusCode}, Response: {errorBody}");
+            }
 
             var json = JObject.Parse(await response.Content.ReadAsStringAsync());
 
+            // Save INITIATED payment
             var payment = new payment_master
             {
                 booking_id = request.BookingId,
-                payment_amount = 500,
+                payment_amount = bookingAmount, 
                 payment_status = "INITIATED",
                 transaction_ref = json["id"]!.ToString(),
                 payment_mode = "RAZORPAY",
@@ -107,7 +127,7 @@ namespace Backend_dotnet.Services.Implementations
         // =========================
         // CONFIRM PAYMENT
         // =========================
-        public string ConfirmPayment(string orderId, string paymentId, long amount)
+        public async Task<string> ConfirmPayment(string orderId, string paymentId, long amount)
         {
             var payment = _paymentRepository.FindByTransactionRef(orderId)
                 ?? throw new Exception("Payment not found");
@@ -120,13 +140,17 @@ namespace Backend_dotnet.Services.Implementations
             payment.payment_date = DateTime.Now;
 
             _paymentRepository.Save(payment);
+
+            // Update booking status to 2 (Confirmed/Paid)
+            await _bookingRepository.UpdateBookingStatusAsync(payment.booking_id, 2);
+
             return "Payment confirmed";
         }
 
         // =========================
         // WEBHOOK HANDLER
         // =========================
-        public void HandleWebhook(string payload, string signature)
+        public async Task HandleWebhook(string payload, string signature)
         {
             var expected = ComputeSignature(payload, _options.WebhookSecret);
             if (!expected.Equals(signature))
@@ -146,6 +170,9 @@ namespace Backend_dotnet.Services.Implementations
                     payment.payment_status = "SUCCESS";
                     payment.payment_date = DateTime.Now;
                     _paymentRepository.Save(payment);
+
+                    // Update booking status to 2 (Confirmed/Paid)
+                    await _bookingRepository.UpdateBookingStatusAsync(payment.booking_id, 2);
                 }
             }
         }

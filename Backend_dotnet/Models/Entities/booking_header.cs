@@ -38,7 +38,7 @@ public partial class booking_header
     public virtual customer_master customer { get; set; } = null!;
 
     [InverseProperty("booking")]
-    public virtual ICollection<passenger> passenger { get; set; } = new List<passenger>();
+    public virtual ICollection<Passenger> passenger { get; set; } = new List<Passenger>();
 
     [InverseProperty("booking")]
     public virtual ICollection<payment_master> payment_master { get; set; } = new List<payment_master>();

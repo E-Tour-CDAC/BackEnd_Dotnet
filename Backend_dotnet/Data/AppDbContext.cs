@@ -31,7 +31,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<itinerary_master> itinerary_master { get; set; }
 
-    public virtual DbSet<passenger> passenger { get; set; }
+    public virtual DbSet<Passenger> passenger { get; set; }
 
     public virtual DbSet<payment_master> payment_master { get; set; }
 
@@ -120,7 +120,7 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.category).WithMany(p => p.itinerary_master).HasConstraintName("fk_itinerary_category");
         });
 
-        modelBuilder.Entity<passenger>(entity =>
+        modelBuilder.Entity<Passenger>(entity =>
         {
             entity.HasKey(e => e.pax_id).HasName("PRIMARY");
 

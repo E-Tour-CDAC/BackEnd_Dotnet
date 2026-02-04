@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Backend_dotnet.Models.Entities;
 
 [Index("booking_id", Name = "fk_passenger_booking")]
-public partial class passenger
+public partial class Passenger
 {
     [Key]
     public int pax_id { get; set; }

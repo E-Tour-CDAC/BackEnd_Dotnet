@@ -6,12 +6,12 @@ using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Services;
 using Backend_dotnet.Services.Implementations;
 using Backend_dotnet.Services.Interfaces;
+using Backend_dotnet.Utilities;
 using Backend_dotnet.Utilities.Helpers;
 using Backend_dotnet.Utilities.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using Backend_dotnet.Services.Implementations;
 
 namespace Backend_dotnet
 {
@@ -58,12 +58,7 @@ namespace Backend_dotnet
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-
-            // ================= SERVICES =================
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
-            builder.Services.AddScoped<IPaymentService, PaymentService>();
-            builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
-            
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
             
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IBookingService, BookingService>();
@@ -80,22 +75,36 @@ namespace Backend_dotnet
             builder.Services.AddScoped<IItineraryService, ItineraryService>();
             builder.Services.AddScoped<IDepartureService, DepartureService>();
 
+            // ================= SERVICES =================
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
+
+            builder.Services.AddScoped<IPassengerService, PassengerService>();
+            builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
+
+            // Search Module
+            builder.Services.AddScoped<ISearchService, SearchService>();
+            builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+
+            // Invoice & Email Module
+            builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
             // ================= RAZORPAY CONFIG =================
             builder.Services.Configure<RazorpayOptions>(
                 builder.Configuration.GetSection("Razorpay")
             );
 
             // ================= HELPERS =================
-            // builder.Services.AddScoped<IBookingService, BookingService>();
-            // builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-
-            builder.Services.AddScoped<IPassengerService, PassengerService>();
-            builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
-
-
-            // ===== HELPERS ====
             builder.Services.AddScoped<EmailHelper>();
             builder.Services.AddScoped<ImageHelper>();
+
+            // ================= JWT & AUTH (NATIVE - NO JAVA PROXY) =================
+            builder.Services.AddSingleton<JwtService>();
+            builder.Services.AddScoped<AuthService>();
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
+            builder.Services.AddHttpContextAccessor();
 
             // ================= CORS =================
             builder.Services.AddCors(options =>
@@ -109,11 +118,13 @@ namespace Backend_dotnet
             });
 
             // ================= MVC & SWAGGER =================
-            // 🔹 Register Search Services
-            builder.Services.AddScoped<ISearchService, SearchService>();
-            builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy =
+                        System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
 
-            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -124,65 +135,37 @@ namespace Backend_dotnet
                 });
             });
 
-
-
-            // =========================
-            // 🔹 CONTROLLERS + JSON (IMPORTANT)
-            // =========================
-            builder.Services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    // 🔥 REQUIRED for Java DTO mapping
-                    options.JsonSerializerOptions.PropertyNamingPolicy =
-                        System.Text.Json.JsonNamingPolicy.CamelCase;
-                });
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(Program));
-
-
-
-            // =========================
-            // 🔹 HTTP CLIENT (JAVA BACKEND)
-            // =========================
-            builder.Services.AddHttpClient("AuthService", client =>
-            {
-                client.BaseAddress = new Uri("http://localhost:8080/");
-                client.DefaultRequestHeaders.Accept.Add(
-                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            });
-
-            // =========================
-            // 🔹 SERVICES
-            // =========================
-            builder.Services.AddScoped<AuthService>(); // 🔥 CALLS JAVA AUTH
 
             var app = builder.Build();
 
-            // ================= MIDDLEWARE =================
-            // 7. CORS (MUST BE FIRST for error responses to work in browser/swagger)
+            // ================= MIDDLEWARE PIPELINE =================
+            // 1. CORS (MUST BE FIRST for error responses to work in browser/swagger)
             app.UseCors("AllowAll");
-            
+
+            // 2. Exception Handling
             app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+            // 3. Logging
             app.UseMiddleware<LoggingMiddleware>();
 
-            
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
+            // 4. JWT Authentication Middleware
+            app.UseMiddleware<JwtMiddleware>();
 
-                // app.UseHttpsRedirection();
-                // 6. Static Files
-                app.UseStaticFiles();
+            // 5. Swagger (Development only)
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
-                // 7. CORS - Moved to top
-            //app.UseAuthentication();
-            //app.UseAuthorization();
-                app.MapControllers();
-                app.Run();
-            }
-            }
+            // 6. Static Files
+            app.UseStaticFiles();
+
+            // 7. Map Controllers
+            app.MapControllers();
+
+            app.Run();
+        }
     }
+}

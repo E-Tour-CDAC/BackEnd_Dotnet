@@ -23,20 +23,20 @@ namespace Backend_dotnet.Controllers
         }
 
         [HttpPost("confirm-payment")]
-        public IActionResult ConfirmPayment(
+        public async Task<IActionResult> ConfirmPayment(
             [FromQuery] string orderId,
             [FromQuery] string paymentId,
             [FromQuery] long amount)
         {
-            return Ok(_service.ConfirmPayment(orderId, paymentId, amount));
+            return Ok(await _service.ConfirmPayment(orderId, paymentId, amount));
         }
 
         [HttpPost("webhook")]
-        public IActionResult Webhook(
+        public async Task<IActionResult> Webhook(
             [FromBody] string payload,
             [FromHeader(Name = "X-Razorpay-Signature")] string signature)
         {
-            _service.HandleWebhook(payload, signature);
+            await _service.HandleWebhook(payload, signature);
             return Ok();
         }
     }
