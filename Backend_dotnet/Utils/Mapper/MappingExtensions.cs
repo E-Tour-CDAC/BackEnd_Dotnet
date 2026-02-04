@@ -2,9 +2,9 @@
 
 namespace Backend_dotnet.Utilities.Mappers
 {
-    /// <summary>
+    
     /// Extension methods for mapping
-    /// </summary>
+    
     public static class MappingExtensions
     {
         public static TDestination MapTo<TDestination>(this object source, IMapper mapper)

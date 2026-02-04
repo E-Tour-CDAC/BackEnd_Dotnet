@@ -58,16 +58,14 @@ namespace Backend_dotnet
             // ================= REPOSITORIES =================
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            //builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
             // ================= SERVICES =================
             builder.Services.AddScoped<ICategoryService, CategoryService>();
-            //builder.Services.AddScoped<IPaymentService, PaymentService>();
-            //builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
-            // 🔹 Register services
-
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IPaymentGatewayService, RazorpayService>();
+            
+            
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IBookingService, BookingService>();
 

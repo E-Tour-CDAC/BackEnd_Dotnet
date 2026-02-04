@@ -4,7 +4,7 @@ namespace Backend_dotnet.Services.Interfaces
 {
     public interface IPaymentService
     {
-        PaymentDto MakePayment(int bookingId, decimal amount);
+        Task<PaymentDto> MakePayment(int bookingId, string paymentMode, string transactionRef, string paymentStatus, decimal amount);
         PaymentDto GetPaymentById(int paymentId);
         PaymentDto GetSuccessfulPayment(int bookingId);
     }

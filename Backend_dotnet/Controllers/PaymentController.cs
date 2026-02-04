@@ -15,9 +15,13 @@ namespace Backend_dotnet.Controllers
         }
 
         [HttpPost("pay")]
-        public IActionResult Pay([FromQuery] int bookingId, [FromQuery] decimal amount)
+        public async Task<IActionResult> Pay([FromQuery] int bookingId, 
+            [FromQuery] string paymentMode,
+            [FromQuery] string transactionRef,
+            [FromQuery] string paymentStatus,
+            [FromQuery] decimal paymentAmount)
         {
-            return Ok(_paymentService.MakePayment(bookingId, amount));
+            return Ok(await _paymentService.MakePayment(bookingId, paymentMode, transactionRef, paymentStatus, paymentAmount));
         }
 
         [HttpGet("{id}")]
