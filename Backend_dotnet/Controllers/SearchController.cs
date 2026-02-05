@@ -10,6 +10,7 @@ namespace Backend_dotnet.Controllers
 { 
     [ApiController]
     [Route("api/search")]
+    public class SearchController : ControllerBase
     {
         private readonly ISearchService _searchService;
         private readonly ITourService _tourService;
