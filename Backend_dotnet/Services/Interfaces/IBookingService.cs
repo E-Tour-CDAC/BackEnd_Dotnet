@@ -1,4 +1,4 @@
-﻿using Backend_dotnet.DTOs.Booking;
+﻿using Backend_dotnet.DTOs;
 using Backend_dotnet.DTOs.Common;
 
 namespace Backend_dotnet.Services.Interfaces

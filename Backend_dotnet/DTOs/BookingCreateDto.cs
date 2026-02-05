@@ -1,6 +1,6 @@
 using System;
 
-namespace Backend_dotnet.DTOs.Booking
+namespace Backend_dotnet.DTOs
 {
     public class BookingCreateDto
     {
