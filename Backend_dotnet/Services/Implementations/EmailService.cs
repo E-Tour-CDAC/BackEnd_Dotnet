@@ -39,8 +39,7 @@ namespace Backend_dotnet.Services.Implementations
 
         public async Task SendBookingConfirmationAsync(int paymentId)
         {
-            var payment = _paymentRepository.FindAllByBookingId(paymentId)
-                .FirstOrDefault(p => p.payment_id == paymentId);
+            var payment = await _paymentRepository.GetPaymentWithBookingAndCustomerAsync(paymentId);
 
             if (payment == null)
                 throw new Exception("Payment not found");
@@ -58,14 +57,14 @@ namespace Backend_dotnet.Services.Implementations
             var subject = $"Booking Confirmed – Booking #{booking.booking_id}";
             var body = $@"Hello {name},
 
-Your booking has been successfully confirmed.
+                    Your booking has been successfully confirmed.
 
-Booking ID: {booking.booking_id}
+                    Booking ID: {booking.booking_id}
 
-Thank you for choosing VirtuGo!
+                    Thank you for choosing VirtuGo!
 
-Regards,
-VirtuGo Team";
+                    Regards,
+                    VirtuGo Team";
 
             await SendSimpleEmailAsync(email, subject, body);
             _logger.LogInformation("Booking confirmation sent for payment {PaymentId}", paymentId);
@@ -73,8 +72,7 @@ VirtuGo Team";
 
         public async Task SendInvoiceWithAttachmentAsync(int paymentId, byte[] pdfBytes)
         {
-            var payment = _paymentRepository.FindAllByBookingId(paymentId)
-                .FirstOrDefault(p => p.payment_id == paymentId);
+            var payment = await _paymentRepository.GetPaymentWithBookingAndCustomerAsync(paymentId);
 
             if (payment == null)
                 throw new Exception("Payment not found");
@@ -98,14 +96,14 @@ VirtuGo Team";
             {
                 TextBody = $@"Hello {name},
 
-Please find your invoice attached.
+                    Please find your invoice attached.
 
-Booking ID: {booking.booking_id}
+                    Booking ID: {booking.booking_id}
 
-Thank you for choosing VirtuGo!
+                    Thank you for choosing VirtuGo!
 
-Regards,
-VirtuGo Team"
+                    Regards,
+                    VirtuGo Team"
             };
 
             // Attach PDF

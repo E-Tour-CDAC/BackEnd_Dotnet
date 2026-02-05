@@ -51,7 +51,18 @@ namespace Backend_dotnet
                 )
             );
 
-            
+            var mailId = Environment.GetEnvironmentVariable("MAIL_USERNAME");
+            var mailToken = Environment.GetEnvironmentVariable("MAIL_PASSWORD");
+
+            if (string.IsNullOrWhiteSpace(mailId) || string.IsNullOrWhiteSpace(mailToken))
+            {
+                throw new Exception("Email environment variables missing");
+            }
+
+            // Inject into appsettings-style configuration
+            builder.Configuration["EmailSettings:SenderEmail"] = mailId;
+            builder.Configuration["EmailSettings:SenderPassword"] = mailToken;
+
 
             // Read your existing env vars
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
@@ -98,6 +109,9 @@ namespace Backend_dotnet
             builder.Services.AddScoped<IPassengerService, PassengerService>();
             builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
 
+            builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("EmailSettings"));
+
             // Search Module
             builder.Services.AddScoped<ISearchService, SearchService>();
             builder.Services.AddScoped<ISearchRepository, SearchRepository>();
@@ -106,6 +120,7 @@ namespace Backend_dotnet
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
             builder.Services.AddScoped<IInvoicePdfService, InvoicePdfService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Configuration.AddEnvironmentVariables();
 
             // ================= RAZORPAY CONFIG =================
             builder.Services.Configure<RazorpayOptions>(
