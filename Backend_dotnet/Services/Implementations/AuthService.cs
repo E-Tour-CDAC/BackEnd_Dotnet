@@ -3,6 +3,8 @@ using Backend_dotnet.Models.Entities;
 using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Utilities;
 using Backend_dotnet.Utilities.Helpers;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Configuration;
 
 namespace Backend_dotnet.Services.Implementations
 {
@@ -13,16 +15,20 @@ namespace Backend_dotnet.Services.Implementations
         private readonly EmailHelper _emailHelper;
         private readonly ILogger<AuthService> _logger;
 
+        private readonly IConfiguration _configuration;
+
         public AuthService(
             ICustomerRepository customerRepository,
             JwtService jwtService,
             EmailHelper emailHelper,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            IConfiguration configuration)
         {
             _customerRepository = customerRepository;
             _jwtService = jwtService;
             _emailHelper = emailHelper;
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -168,9 +174,33 @@ namespace Backend_dotnet.Services.Implementations
         /// <summary>
         /// Handle Google OAuth login/register
         /// </summary>
-        public async Task<string> HandleGoogleLoginAsync(string email, string firstName, string lastName)
+        /// <summary>
+        /// Handle Google OAuth login/register
+        /// </summary>
+        public async Task<string> HandleGoogleLoginAsync(string googleIdToken)
         {
-            _logger.LogInformation("Google OAuth login for: {Email}", email);
+            _logger.LogInformation("Google OAuth login attempted");
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { _configuration["Google:ClientId"] }
+                };
+                payload = await GoogleJsonWebSignature.ValidateAsync(googleIdToken, settings);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Google token validation failed: {Message}", ex.Message);
+                throw new InvalidOperationException("Invalid Google token");
+            }
+
+            var email = payload.Email;
+            var firstName = payload.GivenName;
+            var lastName = payload.FamilyName;
+
+            _logger.LogInformation("Google token validated for: {Email}", email);
 
             var customer = await _customerRepository.GetByEmailAsync(email);
 
@@ -180,8 +210,8 @@ namespace Backend_dotnet.Services.Implementations
                 customer = new customer_master
                 {
                     email = email,
-                    first_name = firstName,
-                    last_name = lastName,
+                    first_name = firstName ?? "Google User",
+                    last_name = lastName ?? "",
                     password = null, // No password for OAuth users
                     customer_role = "CUSTOMER",
                     auth_provider = "GOOGLE",
@@ -193,6 +223,9 @@ namespace Backend_dotnet.Services.Implementations
             }
             else if (customer.auth_provider != "GOOGLE")
             {
+                // Optional: Link account or merge?
+                // For now, strict check as per original design, but allowing if email matches might be better UX if we supported linking.
+                // Current policy: Strict check
                 _logger.LogWarning("Google login failed: User {Email} registered with {Provider}", email, customer.auth_provider);
                 throw new InvalidOperationException($"This email is registered with {customer.auth_provider}. Please login using that method.");
             }

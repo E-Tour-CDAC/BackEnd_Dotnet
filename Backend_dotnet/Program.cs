@@ -51,6 +51,21 @@ namespace Backend_dotnet
                 )
             );
 
+            
+
+            // Read your existing env vars
+            var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+            var clientSecret = Environment.GetEnvironmentVariable("CLIENT_KEY");
+
+            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+            {
+                throw new Exception("CLIENT_ID / CLIENT_key environment variables missing");
+            }
+
+            // Inject them into configuration so appsettings.json style works
+            builder.Configuration["Google:ClientId"] = clientId;
+            builder.Configuration["Google:ClientSecret"] = clientSecret;
+
             // ================= AUTOMAPPER =================
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
