@@ -1,29 +1,32 @@
-
 using Backend_dotnet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+
 using System;
-using System.Security.Cryptography.X509Certificates;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Backend_dotnet.Controllers
 { 
     [ApiController]
-    [Route("api/[controller]")]
-    public class SearchController : ControllerBase
+    [Route("api/search")]
     {
         private readonly ISearchService _searchService;
+        private readonly ITourService _tourService;
 
-        public SearchController(ISearchService searchService)
+        public SearchController(ISearchService searchService, ITourService tourService)
         {
             _searchService = searchService;
+            _tourService = tourService;
         }
 
         // GET: api/search/name/{query}
         [HttpGet("name/{query}")]
         public async Task<IActionResult> SearchByName(string query)
         {
-            var result = await _searchService.GetCategoryIdsByNameAsync(query);
-            return Ok(result);
+            var ids = await _searchService.GetCategoryIdsByNameAsync(query);
+            var tours = await _tourService.GetToursByCategoryIdsAsync(ids.ToList());
+            return Ok(tours);
         }
 
         // GET: api/search/date?from=yyyy-mm-dd&to=yyyy-mm-dd
@@ -35,16 +38,18 @@ namespace Backend_dotnet.Controllers
                 return BadRequest("Invalid date format. Use yyyy-MM-dd");
             }
 
-            var result = await _searchService.GetCategoryIdsByDateRangeAsync(fromDate, toDate);
-            return Ok(result);
+            var ids = await _searchService.GetCategoryIdsByDateRangeAsync(fromDate, toDate);
+            var tours = await _tourService.GetToursByCategoryIdsAsync(ids.ToList());
+            return Ok(tours);
         }
 
         // GET: api/search/cost/{maxCost}
         [HttpGet("cost/{maxCost}")]
         public async Task<IActionResult> SearchByMaxCost(decimal maxCost)
         {
-            var result = await _searchService.GetCategoryIdsByMaxCostAsync(maxCost);
-            return Ok(result);
+            var ids = await _searchService.GetCategoryIdsByMaxCostAsync(maxCost);
+            var tours = await _tourService.GetToursByCategoryIdsAsync(ids.ToList());
+            return Ok(tours);
         }
     }
 }
