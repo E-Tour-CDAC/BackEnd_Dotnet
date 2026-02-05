@@ -51,7 +51,7 @@ namespace Backend_dotnet
                 )
             );
 
-            //DotNetEnv.Env.Load();
+            
 
             // Read your existing env vars
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
