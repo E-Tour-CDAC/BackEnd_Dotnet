@@ -1,6 +1,7 @@
 ﻿using Backend_dotnet.DTOs;
 using Backend_dotnet.Services.Implementations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace Backend_dotnet.Controllers
 {
@@ -10,11 +11,13 @@ namespace Backend_dotnet.Controllers
     {
         private readonly AuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(AuthService authService, ILogger<AuthController> logger)
+        public AuthController(AuthService authService, ILogger<AuthController> logger, IConfiguration configuration)
         {
             _authService = authService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -97,21 +100,82 @@ namespace Backend_dotnet.Controllers
         /// <summary>
         /// Redirect to Google OAuth (placeholder - full OAuth requires additional setup)
         /// </summary>
+        /// <summary>
+        /// Serve a simple HTML page to test Google Login in the browser
+        /// </summary>
         [HttpGet("google-login")]
-        public IActionResult GoogleLogin()
+        public IActionResult GoogleLoginTestPage()
         {
-            // For now, redirect to a message page. Full Google OAuth requires:
-            // 1. Google Cloud Console project with OAuth credentials
-            // 2. ASP.NET Core Google Authentication configured
-            // 3. Callback handler to exchange code for token
+            var clientId = _configuration["Google:ClientId"];
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Login Test</title>
+    <script src=""https://accounts.google.com/gsi/client"" async defer></script>
+</head>
+<body style=""font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;"">
+    <h1>Test Google Login</h1>
+    <div id=""buttonDiv""></div>
+    <div id=""result"" style=""margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; border-radius: 5px; max-width: 800px;""></div>
+
+    <script>
+        function handleCredentialResponse(response) {{
+            document.getElementById('result').innerText = 'Verifying token...';
             
-            _logger.LogInformation("Google OAuth login requested");
-            
-            // Return info about OAuth status
-            return Ok(new { 
-                message = "Google OAuth is not yet configured in C#. Please use email/password login.",
-                status = "pending_setup"
-            });
+            fetch('/api/auth/google-login', {{
+                method: 'POST',
+                headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{ idToken: response.credential }})
+            }})
+            .then(res => res.json())
+            .then(data => {{
+                document.getElementById('result').innerText = 'Success! Backend Response:\n' + JSON.stringify(data, null, 2);
+                console.log(data);
+            }})
+            .catch(err => {{
+                 document.getElementById('result').innerText = 'Error: ' + err;
+            }});
+        }}
+
+        window.onload = function () {{
+            google.accounts.id.initialize({{
+                client_id: ""{clientId}"",
+                callback: handleCredentialResponse
+            }});
+            google.accounts.id.renderButton(
+                document.getElementById(""buttonDiv""),
+                {{ theme: ""outline"", size: ""large"" }}
+            );
+            google.accounts.id.prompt();
+        }}
+    </script>
+</body>
+</html>";
+
+            return Content(html, "text/html");
+        }
+
+        /// <summary>
+        /// Google OAuth login/register
+        /// </summary>
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto dto)
+        {
+            try
+            {
+                var token = await _authService.HandleGoogleLoginAsync(dto.IdToken);
+                return Ok(new { token });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Google login failed");
+                return StatusCode(500, new { message = "An error occurred during Google login" });
+            }
         }
     }
 }

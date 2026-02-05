@@ -1,4 +1,4 @@
-﻿namespace Backend_dotnet.DTOs.Booking
+﻿namespace Backend_dotnet.DTOs
 {
     /// <summary>
     /// Basic booking response DTO

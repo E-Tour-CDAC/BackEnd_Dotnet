@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Backend_dotnet.DTOs.Booking;
+using Backend_dotnet.DTOs;
 using Backend_dotnet.DTOs.Common;
 using Backend_dotnet.Models.Entities;
 using Backend_dotnet.Repositories.Interfaces;
 using Backend_dotnet.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Backend_dotnet.Services.Implementations
 {
