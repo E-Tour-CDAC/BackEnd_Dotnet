@@ -98,6 +98,9 @@ namespace Backend_dotnet
             builder.Services.AddScoped<IPassengerService, PassengerService>();
             builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
 
+            builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("EmailSettings"));
+
             // Search Module
             builder.Services.AddScoped<ISearchService, SearchService>();
             builder.Services.AddScoped<ISearchRepository, SearchRepository>();
@@ -106,6 +109,7 @@ namespace Backend_dotnet
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
             builder.Services.AddScoped<IInvoicePdfService, InvoicePdfService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Configuration.AddEnvironmentVariables();
 
             // ================= RAZORPAY CONFIG =================
             builder.Services.Configure<RazorpayOptions>(

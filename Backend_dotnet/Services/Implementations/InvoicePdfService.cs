@@ -46,18 +46,21 @@ namespace Backend_dotnet.Services.Implementations
             // =============================
 
             var payment = await _context.payment_master
-                .Include(p => p.booking)
-                    .ThenInclude(b => b.customer)
-                .Include(p => p.booking)
-                    .ThenInclude(b => b.tour)
-                        .ThenInclude(t => t.category)
-                .Include(p => p.booking)
-                    .ThenInclude(b => b.tour)
-                        .ThenInclude(t => t.departure)
-                .FirstOrDefaultAsync(p => p.payment_id == paymentId);
+                        .Include(p => p.booking)
+                            .ThenInclude(b => b.customer)
+                        .Include(p => p.booking)
+                            .ThenInclude(b => b.tour)
+                                .ThenInclude(t => t.category)
+                        .Include(p => p.booking)
+                            .ThenInclude(b => b.tour)
+                                .ThenInclude(t => t.departure)
+                        .FirstOrDefaultAsync(p => p.payment_id == paymentId);
 
             if (payment == null)
                 throw new Exception("Payment not found");
+
+            if (payment.booking == null)
+                throw new Exception("Booking not found for payment");
 
             if (!payment.payment_status.Equals(
                     "SUCCESS",
