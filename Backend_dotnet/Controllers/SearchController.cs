@@ -7,15 +7,21 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Backend_dotnet.Controllers
-{ 
+{
     [ApiController]
     [Route("api/search")]
+<<<<<<< Updated upstream
     public class SearchController:ControllerBase
+=======
+    public class SearchController : ControllerBase
+>>>>>>> Stashed changes
     {
         private readonly ISearchService _searchService;
         private readonly ITourService _tourService;
 
-        public SearchController(ISearchService searchService, ITourService tourService)
+        public SearchController(
+            ISearchService searchService,
+            ITourService tourService)
         {
             _searchService = searchService;
             _tourService = tourService;
@@ -32,15 +38,25 @@ namespace Backend_dotnet.Controllers
 
         // GET: api/search/date?from=yyyy-mm-dd&to=yyyy-mm-dd
         [HttpGet("date")]
-        public async Task<IActionResult> SearchByDateRange([FromQuery] string from, [FromQuery] string to)
+        public async Task<IActionResult> SearchByDateRange(
+            [FromQuery] string from,
+            [FromQuery] string to)
         {
-            if (!DateOnly.TryParse(from, out DateOnly fromDate) || !DateOnly.TryParse(to, out DateOnly toDate))
+            if (!DateOnly.TryParse(from, out DateOnly fromDate) ||
+                !DateOnly.TryParse(to, out DateOnly toDate))
             {
                 return BadRequest("Invalid date format. Use yyyy-MM-dd");
             }
 
-            var ids = await _searchService.GetCategoryIdsByDateRangeAsync(fromDate, toDate);
-            var tours = await _tourService.GetToursByCategoryIdsAsync(ids.ToList());
+            var ids =
+                await _searchService.GetCategoryIdsByDateRangeAsync(
+                    fromDate,
+                    toDate);
+
+            var tours =
+                await _tourService.GetToursByCategoryIdsAsync(
+                    ids.ToList());
+
             return Ok(tours);
         }
 
@@ -48,8 +64,13 @@ namespace Backend_dotnet.Controllers
         [HttpGet("cost/{maxCost}")]
         public async Task<IActionResult> SearchByMaxCost(decimal maxCost)
         {
-            var ids = await _searchService.GetCategoryIdsByMaxCostAsync(maxCost);
-            var tours = await _tourService.GetToursByCategoryIdsAsync(ids.ToList());
+            var ids =
+                await _searchService.GetCategoryIdsByMaxCostAsync(maxCost);
+
+            var tours =
+                await _tourService.GetToursByCategoryIdsAsync(
+                    ids.ToList());
+
             return Ok(tours);
         }
     }

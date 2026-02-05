@@ -45,5 +45,13 @@ namespace Backend_dotnet.Repositories.Implementations
             _context.SaveChanges();
             return payment;
         }
+
+        public async Task<payment_master?> GetPaymentWithBookingAndCustomerAsync(int paymentId)
+        {
+            return await _context.payment_master
+                .Include(p => p.booking)
+                    .ThenInclude(b => b.customer)
+                .FirstOrDefaultAsync(p => p.payment_id == paymentId);
+        }
     }
 }
