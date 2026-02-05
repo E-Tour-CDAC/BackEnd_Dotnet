@@ -10,11 +10,8 @@ namespace Backend_dotnet.Controllers
 {
     [ApiController]
     [Route("api/search")]
-<<<<<<< Updated upstream
+
     public class SearchController:ControllerBase
-=======
-    public class SearchController : ControllerBase
->>>>>>> Stashed changes
     {
         private readonly ISearchService _searchService;
         private readonly ITourService _tourService;
