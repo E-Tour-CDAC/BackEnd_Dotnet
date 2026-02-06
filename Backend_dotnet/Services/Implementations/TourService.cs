@@ -152,7 +152,7 @@ namespace Backend_dotnet.Services.Implementations
                 Guides = tour.tour_guide?
                     .Select(g => new TourGuideDto
                     {
-                        TourGuideId = g.tour_guide_id,
+                        Id = g.tour_guide_id,
                         Name = g.name,
                         Email = g.email,
                         Phone = g.phone

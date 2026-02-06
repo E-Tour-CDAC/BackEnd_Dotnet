@@ -17,5 +17,7 @@
         public decimal TotalAmount { get; set; }
         public int StatusId { get; set; }
         public string StatusName { get; set; }
+
+        public List<TourGuideDto> Guides { get; set; } = new();
     }
 }

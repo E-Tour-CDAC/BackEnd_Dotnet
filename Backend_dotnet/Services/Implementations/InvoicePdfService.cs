@@ -54,6 +54,9 @@ namespace Backend_dotnet.Services.Implementations
                         .Include(p => p.booking)
                             .ThenInclude(b => b.tour)
                                 .ThenInclude(t => t.departure)
+                        .Include(p => p.booking)
+                            .ThenInclude(b => b.tour)
+                                .ThenInclude(t => t.tour_guide)
                         .FirstOrDefaultAsync(p => p.payment_id == paymentId);
 
             if (payment == null)
@@ -174,6 +177,35 @@ namespace Backend_dotnet.Services.Implementations
             }
 
             doc.Add(pax);
+
+            // =====================
+            // TOUR GUIDE TABLE
+            // =====================
+            var guides = payment.booking.tour?.tour_guide;
+            if (guides != null && guides.Any())
+            {
+                doc.Add(new Paragraph("Tour Guide Information")
+                    .SetFont(_boldFont)
+                    .SetMarginTop(10)
+                    .SetMarginBottom(10));
+
+                Table guideTable = new Table(3)
+                    .UseAllAvailableWidth()
+                    .SetMarginBottom(20);
+
+                Header(guideTable, "Name");
+                Header(guideTable, "Email");
+                Header(guideTable, "Phone");
+
+                foreach (var g in guides)
+                {
+                    guideTable.AddCell(DataCell(g.name));
+                    guideTable.AddCell(DataCell(g.email));
+                    guideTable.AddCell(DataCell(g.phone));
+                }
+
+                doc.Add(guideTable);
+            }
 
             // =====================
             // TOTALS

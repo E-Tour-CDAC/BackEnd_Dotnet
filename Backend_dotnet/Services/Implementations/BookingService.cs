@@ -125,7 +125,14 @@ namespace Backend_dotnet.Services.Implementations
                 Taxes = booking.taxes,
                 TotalAmount = booking.total_amount ?? 0,
                 StatusId = booking.status_id,
-                StatusName = booking.status?.status_name ?? "Unknown"
+                StatusName = booking.status?.status_name ?? "Unknown",
+                Guides = booking.tour?.tour_guide?.Select(g => new TourGuideDto
+                {
+                    Id = g.tour_guide_id,
+                    Name = g.name,
+                    Email = g.email,
+                    Phone = g.phone
+                }).ToList() ?? new List<TourGuideDto>()
             };
         }
     }

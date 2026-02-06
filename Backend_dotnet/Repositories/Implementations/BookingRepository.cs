@@ -20,6 +20,8 @@ namespace Backend_dotnet.Repositories.Implementations
                 .Include(b => b.customer)
                 .Include(b => b.tour)
                     .ThenInclude(t => t.category)
+                .Include(b => b.tour)
+                    .ThenInclude(t => t.tour_guide)
                 .Include(b => b.status)
                 .ToListAsync();
         }
@@ -33,6 +35,8 @@ namespace Backend_dotnet.Repositories.Implementations
                     .ThenInclude(t => t.category)
                 .Include(b => b.tour)
                     .ThenInclude(t => t.departure)
+                .Include(b => b.tour)
+                    .ThenInclude(t => t.tour_guide)
                 .Include(b => b.status)
                 .Include(b => b.passenger)
                 .Include(b => b.payment_master)
@@ -46,6 +50,8 @@ namespace Backend_dotnet.Repositories.Implementations
                     .ThenInclude(t => t.category)
                 .Include(b => b.tour)
                     .ThenInclude(t => t.departure)
+                .Include(b => b.tour)
+                    .ThenInclude(t => t.tour_guide)
                 .Include(b => b.status)
                 .Where(b => b.customer_id == customerId)
                 .OrderByDescending(b => b.booking_date)

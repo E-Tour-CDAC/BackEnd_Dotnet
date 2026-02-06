@@ -58,7 +58,7 @@ namespace Backend_dotnet.Services.Implementations
             {
                 return new CreateOrderResponseDto
                 {
-                    OrderId = initiated.transaction_ref,
+                    OrderId = initiated.transaction_ref, //order
                     Amount = (long)(initiated.payment_amount * 100),
                     Currency = "INR"
                 };
